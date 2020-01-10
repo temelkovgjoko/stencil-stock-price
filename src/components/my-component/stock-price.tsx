@@ -1,5 +1,14 @@
-import { Component, Element, Prop, State, Watch, h } from "@stencil/core";
-
+import {
+  Component,
+  Element,
+  Prop,
+  State,
+  Watch,
+  h,
+  Listen,
+  Host
+} from "@stencil/core";
+import { AV_API_KEY } from "../../global/global";
 @Component({
   tag: "gt-stock-price",
   styleUrl: "./stock-price.css",
@@ -14,12 +23,15 @@ export class StockPrice {
   @State() stockUserInput: string;
   @State() stockInputValid = false;
   @State() error: string;
+  @State() loading = false;
 
   @Prop({ mutable: true, reflect: true }) stockSymbol: string;
+
   @Watch("stockSymbol")
   stockSymboldChanged(newValue: string, oldValue: string) {
     if (newValue !== oldValue) {
       this.stockUserInput = newValue;
+      this.stockInputValid = true;
       this.fetchStockPrice(newValue);
     }
   }
@@ -71,9 +83,18 @@ export class StockPrice {
     console.log("componentDidUnload");
   }
 
+  @Listen("body:gtSymbolSelected")
+  onStockSymbolSelected(event: CustomEvent) {
+    console.log("stock symbol selected: " + event.detail);
+    if (event.detail && event.detail !== this.stockSymbol) {
+      this.stockSymbol = event.detail;
+    }
+  }
+
   fetchStockPrice(stockSymbol: string) {
+    this.loading = true;
     fetch(
-      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${stockSymbol}&apikey=604RAW439XBWNZVM`
+      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${stockSymbol}&apikey=${AV_API_KEY}`
     )
       .then(res => {
         if (res.status !== 200) {
@@ -90,11 +111,21 @@ export class StockPrice {
         }
         this.error = null;
         this.fetchedPrice = +parsedRes["Global Quote"]["05. price"];
+        this.loading = false;
       })
       .catch(err => {
         this.error = err.message;
+        this.fetchedPrice = null;
+        this.loading = false;
       });
   }
+
+  con() {
+    console.log("ccc");
+  }
+  // hostData() {
+  //   return { class: this.error ? 'hydrated' : '' };
+  // }
 
   render() {
     let dataContent = <p>Please enter a symbol!</p>;
@@ -104,20 +135,43 @@ export class StockPrice {
     if (this.fetchedPrice) {
       dataContent = <p>Price: ${this.fetchedPrice}</p>;
     }
-    return [
-      <form onSubmit={this.onFeetchStockPrice.bind(this)}>
-        <input
-          id="stock-symbol"
-          ref={el => (this.stockInput = el)}
-          value={this.stockUserInput}
-          onInput={this.onUserInput.bind(this)}
-        />
-        <button type="submit" disabled={!this.stockInputValid}>
-          Fetch
-        </button>
-      </form>,
-      <div>{dataContent}</div>
-    ];
+    if (this.loading) {
+      dataContent = (
+        <div class="lds-roller">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      );
+    }
+    return (
+      <Host
+        class={{
+          error: !!this.error
+        }}
+      >
+        <form onSubmit={this.onFeetchStockPrice.bind(this)}>
+          <input
+            id="stock-symbol"
+            ref={el => (this.stockInput = el)}
+            value={this.stockUserInput}
+            onInput={this.onUserInput.bind(this)}
+          />
+          <button
+            type="submit"
+            disabled={!this.stockInputValid || this.loading}
+          >
+            Fetch
+          </button>
+        </form>
+        <div>{dataContent}</div>
+      </Host>
+    );
   }
 }
 //

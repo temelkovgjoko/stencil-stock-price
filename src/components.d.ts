@@ -10,6 +10,7 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
+  interface GtStockFinder {}
   interface GtStockPrice {
     'stockSymbol': string;
   }
@@ -18,22 +19,33 @@ export namespace Components {
 declare global {
 
 
+  interface HTMLGtStockFinderElement extends Components.GtStockFinder, HTMLStencilElement {}
+  var HTMLGtStockFinderElement: {
+    prototype: HTMLGtStockFinderElement;
+    new (): HTMLGtStockFinderElement;
+  };
+
   interface HTMLGtStockPriceElement extends Components.GtStockPrice, HTMLStencilElement {}
   var HTMLGtStockPriceElement: {
     prototype: HTMLGtStockPriceElement;
     new (): HTMLGtStockPriceElement;
   };
   interface HTMLElementTagNameMap {
+    'gt-stock-finder': HTMLGtStockFinderElement;
     'gt-stock-price': HTMLGtStockPriceElement;
   }
 }
 
 declare namespace LocalJSX {
+  interface GtStockFinder {
+    'onGtSymbolSelected'?: (event: CustomEvent<string>) => void;
+  }
   interface GtStockPrice {
     'stockSymbol'?: string;
   }
 
   interface IntrinsicElements {
+    'gt-stock-finder': GtStockFinder;
     'gt-stock-price': GtStockPrice;
   }
 }
@@ -44,6 +56,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
   export namespace JSX {
     interface IntrinsicElements {
+      'gt-stock-finder': LocalJSX.GtStockFinder & JSXBase.HTMLAttributes<HTMLGtStockFinderElement>;
       'gt-stock-price': LocalJSX.GtStockPrice & JSXBase.HTMLAttributes<HTMLGtStockPriceElement>;
     }
   }
