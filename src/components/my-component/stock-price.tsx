@@ -136,18 +136,7 @@ export class StockPrice {
       dataContent = <p>Price: ${this.fetchedPrice}</p>;
     }
     if (this.loading) {
-      dataContent = (
-        <div class="lds-roller">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
-        </div>
-      );
+      dataContent = <gt-spinner> </gt-spinner>;
     }
     return (
       <Host
